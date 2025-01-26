@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "domoblock-devnew", 
+    "development": "domoblock-devnew", 
+    "production": "domoblock-dapp" 
+  }
+}
