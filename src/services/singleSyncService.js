@@ -1,4 +1,4 @@
-const syncSingleUser = async (email) => {
+çconst syncSingleUser = async (email) => {
   try {
     const response = await hubspotClient.crm.contacts.basicApi.getPage(1, undefined, ['email', 'ID de registro']);
     const contact = response.results.find((c) => c.properties.email === email.toLowerCase());
