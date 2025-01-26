@@ -1,61 +1,25 @@
-const { db } = require('../config/firebase');
-const hubspotClient = require('../config/hubspot');
-
-/**
- * Sincroniza un único contacto desde HubSpot con Firebase.
- * @param {string} email - El email del contacto a sincronizar.
- * @returns {Promise<object>} - Resultado de la sincronización.
- */
-const singleSyncService = async (email) => {
+const syncSingleUser = async (email) => {
   try {
-    // Buscar el contacto en HubSpot usando el email
-    const response = await hubspotClient.crm.contacts.searchApi.doSearch({
-      filterGroups: [
-        {
-          filters: [
-            {
-              propertyName: 'email',
-              operator: 'EQ',
-              value: email,
-            },
-          ],
-        },
-      ],
-    });
+    const response = await hubspotClient.crm.contacts.basicApi.getPage(1, undefined, ['email', 'ID de registro']);
+    const contact = response.results.find((c) => c.properties.email === email.toLowerCase());
 
-    if (response.total === 0) {
-      return { success: false, message: 'No se encontró el contacto en HubSpot.' };
+    if (!contact) {
+      throw new Error('El contacto no existe en HubSpot');
     }
 
-    const hubspotContact = response.results[0];
-
-    // Buscar el usuario en Firebase
-    const snapshot = await db
-      .collection('users')
-      .where('email', '==', email.toLowerCase())
-      .get();
-
-    if (snapshot.empty) {
-      return { success: false, message: 'No se encontró el usuario en Firebase.' };
+    const snapshot = await db.collection('users').where('email', '==', email.toLowerCase()).get();
+    if (!snapshot.empty) {
+      await snapshot.docs[0].ref.update({
+        idRegistroHubspot: contact.properties['ID de registro'],
+        lastSyncedWithHubspot: admin.firestore.FieldValue.serverTimestamp()
+      });
+      return { success: true };
     }
-
-    // Actualizar el documento del usuario en Firebase con la información de HubSpot
-    const userDoc = snapshot.docs[0];
-    await userDoc.ref.update({
-      hubspotId: hubspotContact.id,
-      registrationCode: hubspotContact.properties['ID de registro'],
-      lastSynced: new Date().toISOString(),
-    });
-
-    return {
-      success: true,
-      message: 'Sincronización completada con éxito.',
-      hubspotId: hubspotContact.id,
-      firebaseUserId: userDoc.id,
-    };
+    return { success: false, message: 'Usuario no encontrado en Firestore' };
   } catch (error) {
-    return { success: false, message: 'Error durante la sincronización.', error: error.message };
+    console.error('Error al sincronizar usuario:', error.message);
+    return { success: false, error: error.message };
   }
 };
 
-module.exports = { singleSyncService };
+module.exports = { syncSingleUser };

@@ -1,54 +1,30 @@
-// Importa el cliente de HubSpot y Firebase
-const { hubspotClient } = require('../config/hubspot');
-const { db } = require('../config/firebase');
-
-/**
- * Servicio para realizar la sincronización en lotes (bulk sync) de contactos desde HubSpot a Firebase.
- */
-exports.bulkSyncService = async () => {
-  let processedCount = 0;
-  let errorCount = 0;
-  let after = null; // Variable para paginación en HubSpot
-
+const syncAllUsers = async () => {
   try {
-    do {
-      // Llama a la API de HubSpot para obtener los contactos en lotes de 25
-      const response = await hubspotClient.crm.contacts.basicApi.getPage(25, after, ['email', 'ID de registro']);
+    const response = await hubspotClient.crm.contacts.basicApi.getPage(100, undefined, ['email', 'ID de registro']);
+    let updatedCount = 0;
 
-      for (const contact of response.results) {
-        if (contact.properties.email) {
-          try {
-            // Busca al usuario en Firebase basado en el email
-            const snapshot = await db.collection('users')
-              .where('email', '==', contact.properties.email.toLowerCase())
-              .get();
+    for (const contact of response.results) {
+      const email = contact.properties.email;
+      const idRegistroHubspot = contact.properties['ID de registro'];
 
-            if (!snapshot.empty) {
-              // Actualiza el documento con el ID de registro de HubSpot
-              await snapshot.docs[0].ref.update({
-                hubspotId: contact.id,
-                idRegistroHubspot: contact.properties['ID de registro'],
-                lastSyncedWithHubspot: new Date() // Fecha de última sincronización
-              });
-              processedCount++;
-            } else {
-              console.log(`Email no encontrado en Firebase: ${contact.properties.email}`);
-              errorCount++;
-            }
-          } catch (error) {
-            console.error(`Error al procesar el email ${contact.properties.email}:`, error.message);
-            errorCount++;
-          }
+      if (email && idRegistroHubspot) {
+        const snapshot = await db.collection('users').where('email', '==', email.toLowerCase()).get();
+
+        if (!snapshot.empty) {
+          await snapshot.docs[0].ref.update({
+            idRegistroHubspot,
+            lastSyncedWithHubspot: admin.firestore.FieldValue.serverTimestamp()
+          });
+          updatedCount++;
         }
       }
+    }
 
-      // Actualiza el cursor para la siguiente página
-      after = response.paging?.next?.after;
-    } while (after);
-
-    return { processedCount, errorCount };
+    return { success: true, updatedCount };
   } catch (error) {
-    console.error('Error en la sincronización en lotes:', error.message);
-    throw new Error('Error en la sincronización en lotes');
+    console.error('Error en sincronización masiva:', error.message);
+    return { success: false, error: error.message };
   }
 };
+
+module.exports = { syncAllUsers };
