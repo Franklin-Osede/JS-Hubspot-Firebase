@@ -1,0 +1,33 @@
+# Node.js Dependencies
+node_modules/
+package-lock.json
+
+# Environment files
+.env
+.env.production
+
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+firestore-debug.*.log
+
+# HubSpot
+hubspot.config.yml
+hubspot-*.log
+
+# IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Build/Deploy
+dist/
+build/
+*.local
