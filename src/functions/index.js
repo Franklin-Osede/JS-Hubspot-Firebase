@@ -1,7 +1,7 @@
 const functions = require('firebase-functions');
 const express = require('express');
 const bodyParser = require('body-parser');
-const config = require('./config/index.js');  // Actualiza esta ruta
+const config = require('./config');  // Actualiza esta ruta
 const singleSyncRoutes = require('./routes/singleSyncRoutes');
 const bulkSyncRoutes = require('./routes/bulkSyncRoutes');
 

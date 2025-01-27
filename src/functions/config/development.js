@@ -5,13 +5,11 @@ dotenv.config();
 
 const developmentConfig = {
   firebase: {
-    projectId: process.env.PROJECT_ID,
-    clientEmail: process.env.CLIENT_EMAIL,
-    privateKey: process.env.PRIVATE_KEY.replace(/\\n/g, '\n'),
-    useEmulator: process.env.USE_FIREBASE_EMULATOR === 'true',
+    projectId: 'domoblock-devnew',
+    useEmulator: true,
   },
   hubspot: {
-    apiKey: process.env.HUBSPOT_API_KEY,
+    apiKey: process.env.HUBSPOT_API_KEY || 'test-key',
   },
 };
 

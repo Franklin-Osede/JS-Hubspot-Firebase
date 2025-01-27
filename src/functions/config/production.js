@@ -1,17 +1,15 @@
 const dotenv = require('dotenv');
 
 // Cargar variables de entorno desde .env.production
-dotenv.config();
+dotenv.config({ path: '.env.production' });
 
 const productionConfig = {
   firebase: {
-    projectId: process.env.PROJECT_ID,
-    clientEmail: process.env.CLIENT_EMAIL,
-    privateKey: process.env.PRIVATE_KEY.replace(/\\n/g, '\n'),
+    projectId: 'domoblock-devnew',
     useEmulator: false, // En producción, nunca usaremos el emulador
   },
   hubspot: {
-    apiKey: process.env.HUBSPOT_API_KEY,
+    apiKey: process.env.HUBSPOT_API_KEY || '',
   },
 };
 
