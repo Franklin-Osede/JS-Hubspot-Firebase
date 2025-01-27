@@ -1,9 +1,8 @@
-const { singleSyncService } = require('../services/singleSyncService');
+const admin = require('firebase-admin');
+const { syncSingleUser } = require('../services/singleSyncService');
 
 /**
  * Controlador para manejar la sincronización de un único usuario.
- * @param {Object} req - La solicitud HTTP.
- * @param {Object} res - La respuesta HTTP.
  */
 const singleSyncController = async (req, res) => {
   try {
@@ -16,8 +15,8 @@ const singleSyncController = async (req, res) => {
       });
     }
 
-    // Llama al servicio para realizar la sincronización
-    const result = await singleSyncService(email);
+    const db = admin.firestore();
+    const result = await syncSingleUser(db, email);
 
     if (result.success) {
       return res.status(200).json({
