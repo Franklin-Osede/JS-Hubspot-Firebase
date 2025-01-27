@@ -2,8 +2,15 @@ const admin = require('firebase-admin');
 const { Client } = require('@hubspot/api-client');
 const config = require('../config');
 
+// Log para debug de configuración
+console.log('Configuración de HubSpot:', {
+  apiKey: config.hubspot.apiKey ? 'Presente' : 'No presente'
+});
+
 // Inicializar el cliente de HubSpot
-const hubspotClient = new Client({ accessToken: config.hubspot.apiKey });
+const hubspotClient = new Client({
+  accessToken: config.hubspot.apiKey
+});
 
 /**
  * Sincroniza un usuario específico de HubSpot con Firebase
@@ -12,38 +19,51 @@ const hubspotClient = new Client({ accessToken: config.hubspot.apiKey });
  */
 const syncSingleUser = async (db, email) => {
   try {
-    const response = await hubspotClient.crm.contacts.basicApi.getPage(
-      1,
-      undefined,
-      ['email', 'ID de registro']
-    );
+    console.log('Iniciando búsqueda en HubSpot para:', email);
 
-    const contact = response.results.find(
-      (c) => c.properties.email?.toLowerCase() === email.toLowerCase()
-    );
+    // Buscar contacto por email en HubSpot
+    const response = await hubspotClient.crm.contacts.searchApi.doSearch({
+      filterGroups: [
+        {
+          filters: [
+            {
+              propertyName: 'email',
+              operator: 'EQ',
+              value: email
+            }
+          ]
+        }
+      ],
+      properties: ['email', 'id'] // Propiedades específicas que necesitas
+    });
 
-    if (!contact) {
+    // Verificar resultados
+    if (!response.results || response.results.length === 0) {
       return {
         success: false,
         message: 'El contacto no existe en HubSpot'
       };
     }
 
+    const contact = response.results[0];
+    console.log('Contacto encontrado en HubSpot:', contact);
+
+    // Verificar usuario en Firestore
     const snapshot = await db.collection('users')
       .where('email', '==', email.toLowerCase())
       .get();
 
     if (!snapshot.empty) {
-      const idRegistroHubspot = contact.properties['ID de registro'];
+      const hubspotId = contact.id;
       await snapshot.docs[0].ref.update({
-        idRegistroHubspot,
+        hubspotId,
         lastSyncedWithHubspot: admin.firestore.FieldValue.serverTimestamp()
       });
 
       return {
         success: true,
-        idRegistroHubspot,
-        hubspotId: contact.id
+        hubspotId,
+        message: 'Usuario sincronizado exitosamente'
       };
     }
 
