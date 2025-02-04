@@ -1,55 +1,70 @@
+// bulkSyncService.js
 const admin = require('firebase-admin');
 const { Client } = require('@hubspot/api-client');
 const config = require('../config');
 
-// Inicializar el cliente de HubSpot
-const hubspotClient = new Client({ accessToken: config.hubspot.apiKey });
+// Usar el mismo cliente de HubSpot
+const hubspotClient = new Client({
+  accessToken: config.hubspot.apiKey
+});
 
-/**
- * Sincroniza todos los usuarios de HubSpot con Firebase
- * @param {FirebaseFirestore.Firestore} db - Instancia de Firestore
- * @returns {Promise<{success: boolean, updatedCount?: number, error?: string}>}
- */
 const syncAllUsers = async (db) => {
   try {
-    const response = await hubspotClient.crm.contacts.basicApi.getPage(
-      100,
-      undefined,
-      ['email', 'ID de registro']
-    );
+    let after;
+    let processedCount = 0;
     let updatedCount = 0;
+    let errorCount = 0;
 
-    for (const contact of response.results) {
-      const email = contact.properties.email;
-      const idRegistroHubspot = contact.properties['ID de registro'];
+    do {
+      const response = await hubspotClient.crm.contacts.basicApi.getPage(
+        100,
+        after,
+        ['email', 'id', 'ID de registro']
+      );
 
-      if (email && idRegistroHubspot) {
-        const snapshot = await db.collection('users')
-          .where('email', '==', email.toLowerCase())
-          .get();
+      for (const contact of response.results) {
+        processedCount++;
+        const email = contact.properties.email;
+        const idRegistroHubspot = contact.properties['ID de registro'];
+        const hubspotId = contact.id;
 
-        if (!snapshot.empty) {
-          await snapshot.docs[0].ref.update({
-            idRegistroHubspot,
-            lastSyncedWithHubspot: admin.firestore.FieldValue.serverTimestamp()
-          });
-          updatedCount++;
+        if (email && idRegistroHubspot) {
+          try {
+            const snapshot = await db.collection('users')
+              .where('email', '==', email.toLowerCase())
+              .get();
+
+            if (!snapshot.empty) {
+              await snapshot.docs[0].ref.update({
+                hubspotId,
+                idRegistroHubspot,
+                lastSyncedWithHubspot: admin.firestore.FieldValue.serverTimestamp()
+              });
+              updatedCount++;
+            }
+          } catch (error) {
+            console.error(`Error actualizando usuario ${email}:`, error);
+            errorCount++;
+          }
         }
       }
-    }
+
+      after = response.paging?.next?.after;
+
+    } while (after);
 
     return {
       success: true,
       updatedCount,
-      processedCount: response.results.length,
-      errorCount: response.results.length - updatedCount
+      processedCount,
+      errorCount
     };
   } catch (error) {
-    console.error('Error en sincronización masiva:', error.message);
+    console.error('Error en sincronización masiva:', error);
     return {
       success: false,
       error: error.message,
-      processedCount: 0,
+      processedCount,
       errorCount: 0
     };
   }
@@ -57,5 +72,5 @@ const syncAllUsers = async (db) => {
 
 module.exports = {
   syncAllUsers,
-  bulkSyncService: syncAllUsers // Alias para mantener compatibilidad
+  bulkSyncService: syncAllUsers
 };

@@ -1,44 +1,83 @@
+// singleSyncService.js
 const admin = require('firebase-admin');
-const { syncSingleUser } = require('../services/singleSyncService');
+const { Client } = require('@hubspot/api-client');
+const config = require('../config');
 
-const singleSyncController = async (req, res) => {
+// Inicializar el cliente de HubSpot
+const hubspotClient = new Client({
+  accessToken: config.hubspot.apiKey
+});
+
+/**
+ * Sincroniza un usuario específico de HubSpot con Firebase.
+ * @param {FirebaseFirestore.Firestore} db - Instancia de Firestore.
+ * @param {string} email - Email del usuario a sincronizar.
+ */
+const syncSingleUser = async (db, email) => {
   try {
-    const { email } = req.body;
+    console.log('Iniciando búsqueda en HubSpot para:', email);
 
-    console.log('Email recibido para sincronización:', email);
-
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: 'El campo "email" es obligatorio.',
-      });
-    }
-
-    const db = admin.firestore();
-    const result = await syncSingleUser(db, email);
-
-    if (result.success) {
-      console.log('Sincronización exitosa para el email:', email);
-      return res.status(200).json({
-        success: true,
-        message: result.message,
-        hubspotId: result.hubspotId,
-      });
-    } else {
-      console.log('Sincronización fallida para el email:', email);
-      return res.status(404).json({
-        success: false,
-        message: result.message || 'No se pudo sincronizar el usuario.',
-      });
-    }
-  } catch (error) {
-    console.error('Error en el controlador singleSyncController:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Ocurrió un error inesperado durante la sincronización.',
-      error: error.message,
+    // Buscar contacto por email en HubSpot
+    const response = await hubspotClient.crm.contacts.searchApi.doSearch({
+      filterGroups: [
+        {
+          filters: [
+            {
+              propertyName: 'email',
+              operator: 'EQ',
+              value: email,
+            },
+          ],
+        },
+      ],
+      properties: ['email', 'id', 'ID de registro'],
     });
+
+    if (!response.results || response.results.length === 0) {
+      console.log('No se encontraron contactos para el email:', email);
+      return {
+        success: false,
+        message: 'El contacto no existe en HubSpot',
+      };
+    }
+
+    const contact = response.results[0];
+    const snapshot = await db.collection('users')
+      .where('email', '==', email.toLowerCase())
+      .get();
+
+    if (!snapshot.empty) {
+      const hubspotId = contact.id;
+      const idRegistroHubspot = contact.properties['ID de registro'];
+
+      await snapshot.docs[0].ref.update({
+        hubspotId,
+        idRegistroHubspot,
+        lastSyncedWithHubspot: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      return {
+        success: true,
+        hubspotId,
+        message: 'Usuario sincronizado exitosamente',
+      };
+    }
+
+    return {
+      success: false,
+      message: 'Usuario no encontrado en Firestore',
+    };
+  } catch (error) {
+    console.error('Error al sincronizar usuario:', error);
+    return {
+      success: false,
+      message: 'Error al sincronizar usuario',
+      error: error.message,
+    };
   }
 };
 
-module.exports = { singleSyncController };
+module.exports = {
+  syncSingleUser,
+  singleSyncService: syncSingleUser,
+};

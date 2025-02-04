@@ -1,48 +1,34 @@
+// config/development.js
+
 const dotenv = require('dotenv');
-const axios = require('axios');
 
-// Cargar variables de entorno desde .env
-dotenv.config();
+// Cargar variables de entorno desde .env.development
+dotenv.config({ path: '.env.development' });
 
-let accessToken = process.env.HUBSPOT_API_KEY || 'test-key'; // Token inicial
-const refreshToken = process.env.HUBSPOT_REFRESH_TOKEN; // Refresh Token
+// Validación inicial de configuración
+if (!process.env.HUBSPOT_ACCESS_TOKEN) {
+  console.warn('⚠️ HUBSPOT_ACCESS_TOKEN no está configurado en .env.development');
+}
 
-// Función para renovar el Access Token automáticamente
-const refreshAccessToken = async () => {
-  try {
-    const response = await axios.post('https://api.hubspot.com/oauth/v1/token', null, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      params: {
-        grant_type: 'refresh_token',
-        client_id: '725d163d-287e-4f4a-97a7-13c818b16991', // Tu Client ID
-        client_secret: 'a6722087-fdb3-4bc4-8225-400378d985b3', // Tu Client Secret
-        refresh_token: refreshToken,
-      },
-    });
+// Configuración para desarrollo
+const developmentConfig = {
+  // Configuración de Firebase
+  firebase: {
+    projectId: process.env.FIREBASE_PROJECT_ID || 'domoblock-devnew',
+    useEmulator: true,
+  },
 
-    accessToken = response.data.access_token; // Actualiza el token globalmente
-    console.log('Nuevo Access Token obtenido:', accessToken);
-
-    return accessToken;
-  } catch (error) {
-    console.error('Error al renovar el Access Token:', error.response?.data || error.message);
-    throw error;
+  // Configuración de HubSpot
+  hubspot: {
+    apiKey: process.env.HUBSPOT_ACCESS_TOKEN
   }
 };
 
-const developmentConfig = {
-  firebase: {
-    projectId: 'domoblock-devnew',
-    useEmulator: true,
-  },
-  hubspot: {
-    get apiKey() {
-      return accessToken; // Retorna siempre el Access Token actualizado
-    },
-    refreshAccessToken, // Exponer la función para renovar el token
-  },
-};
+// Log de verificación (opcional, puedes comentarlo en producción)
+console.log('📝 Configuración cargada:', {
+  environment: 'development',
+  firebaseProject: developmentConfig.firebase.projectId,
+  hubspotConfigured: !!developmentConfig.hubspot.apiKey
+});
 
 module.exports = developmentConfig;
