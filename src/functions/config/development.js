@@ -1,11 +1,10 @@
 const dotenv = require('dotenv');
 const path = require('path');
 
-// Obtener la ruta absoluta al archivo .env.development
+// Cargar variables de entorno desde .env.development
 const envPath = path.resolve(__dirname, '../.env.development');
 console.log('🔍 Buscando archivo .env en:', envPath);
 
-// Cargar variables de entorno
 const result = dotenv.config({ path: envPath });
 
 if (result.error) {
@@ -26,7 +25,6 @@ const developmentConfig = {
   }
 };
 
-// Validación final
 if (!developmentConfig.hubspot.apiKey) {
   console.error('❌ Token de HubSpot no encontrado en la configuración');
 } else {
