@@ -1,34 +1,36 @@
-// config/development.js
-
 const dotenv = require('dotenv');
+const path = require('path');
 
-// Cargar variables de entorno desde .env.development
-dotenv.config({ path: '.env.development' });
+// Obtener la ruta absoluta al archivo .env.development
+const envPath = path.resolve(__dirname, '../.env.development');
+console.log('🔍 Buscando archivo .env en:', envPath);
 
-// Validación inicial de configuración
-if (!process.env.HUBSPOT_ACCESS_TOKEN) {
-  console.warn('⚠️ HUBSPOT_ACCESS_TOKEN no está configurado en .env.development');
+// Cargar variables de entorno
+const result = dotenv.config({ path: envPath });
+
+if (result.error) {
+  console.error('❌ Error cargando .env:', result.error);
+} else {
+  console.log('✅ Archivo .env cargado correctamente');
 }
 
-// Configuración para desarrollo
+console.log('🔑 HUBSPOT_ACCESS_TOKEN:', process.env.HUBSPOT_ACCESS_TOKEN ? 'Presente' : 'No presente');
+
 const developmentConfig = {
-  // Configuración de Firebase
   firebase: {
     projectId: process.env.FIREBASE_PROJECT_ID || 'domoblock-devnew',
     useEmulator: true,
   },
-
-  // Configuración de HubSpot
   hubspot: {
     apiKey: process.env.HUBSPOT_ACCESS_TOKEN
   }
 };
 
-// Log de verificación (opcional, puedes comentarlo en producción)
-console.log('📝 Configuración cargada:', {
-  environment: 'development',
-  firebaseProject: developmentConfig.firebase.projectId,
-  hubspotConfigured: !!developmentConfig.hubspot.apiKey
-});
+// Validación final
+if (!developmentConfig.hubspot.apiKey) {
+  console.error('❌ Token de HubSpot no encontrado en la configuración');
+} else {
+  console.log('✅ Token de HubSpot configurado correctamente');
+}
 
 module.exports = developmentConfig;
