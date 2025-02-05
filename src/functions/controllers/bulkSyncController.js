@@ -3,8 +3,11 @@ const { syncAllUsers } = require('../services/bulkSyncService');
 
 exports.bulkSyncContacts = async (req, res) => {
   try {
+    const { emails } = req.body;
+    console.log('Emails recibidos para sincronización:', emails);
+
     const db = admin.firestore();
-    const result = await syncAllUsers(db);
+    const result = await syncAllUsers(db, emails);
 
     if (result.success) {
       res.status(200).json({
