@@ -1,4 +1,3 @@
-// controllers/singleSyncController.js
 const admin = require('firebase-admin');
 const { syncSingleUser } = require('../services/singleSyncService');
 
