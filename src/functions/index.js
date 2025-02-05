@@ -1,18 +1,21 @@
 const functions = require('firebase-functions');
 const express = require('express');
 const bodyParser = require('body-parser');
-const config = require('./config');  // Actualiza esta ruta
+const config = require('./config');
 const singleSyncRoutes = require('./routes/singleSyncRoutes');
 const bulkSyncRoutes = require('./routes/bulkSyncRoutes');
 
 // Inicializar Firebase Admin
 const admin = require('firebase-admin');
-if (process.env.FUNCTIONS_EMULATOR) {
-  admin.initializeApp({
-    projectId: 'domoblock-devnew'
-  });
-} else {
-  admin.initializeApp();
+if (!admin.apps.length) {
+  if (process.env.FUNCTIONS_EMULATOR) {
+    admin.initializeApp({
+      projectId: config.firebase.projectId,
+      credential: admin.credential.applicationDefault()
+    });
+  } else {
+    admin.initializeApp();
+  }
 }
 
 const app = express();
@@ -33,7 +36,7 @@ app.use('/bulk-sync', bulkSyncRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error(err);
+  console.error('Error:', err);
   res.status(err.status || 500).json({
     success: false,
     message: err.message || 'Internal Server Error'
