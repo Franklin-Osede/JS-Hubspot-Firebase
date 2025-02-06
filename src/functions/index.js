@@ -8,12 +8,20 @@ const bulkSyncRoutes = require('./routes/bulkSyncRoutes');
 // Inicializar Firebase Admin
 const admin = require('firebase-admin');
 if (!admin.apps.length) {
-  if (process.env.FUNCTIONS_EMULATOR) {
+  if (process.env.NODE_ENV === 'production') {
+    // Configuración específica para producción
+    admin.initializeApp({
+      credential: admin.credential.cert(config.firebase.credential),
+      projectId: config.firebase.projectId
+    });
+  } else if (process.env.FUNCTIONS_EMULATOR) {
+    // Configuración para el emulador
     admin.initializeApp({
       projectId: config.firebase.projectId,
       credential: admin.credential.applicationDefault()
     });
   } else {
+    // Configuración por defecto
     admin.initializeApp();
   }
 }
