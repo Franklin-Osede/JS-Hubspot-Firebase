@@ -10,9 +10,15 @@ const admin = require('firebase-admin');
 if (!admin.apps.length) {
   if (process.env.NODE_ENV === 'production') {
     // Configuración específica para producción
+    const serviceAccount = {
+      projectId: process.env.PROJECT_ID,
+      privateKey: process.env.PRIVATE_KEY.replace(/\\n/g, '\n'),
+      clientEmail: process.env.CLIENT_EMAIL
+    };
+
     admin.initializeApp({
-      credential: admin.credential.cert(config.firebase.credential),
-      projectId: config.firebase.projectId
+      credential: admin.credential.cert(serviceAccount),
+      projectId: process.env.PROJECT_ID
     });
   } else if (process.env.FUNCTIONS_EMULATOR) {
     // Configuración para el emulador
