@@ -40,32 +40,6 @@ FIREBASE_PROJECT_ID=your-firebase-project-id
 FIREBASE_CLIENT_EMAIL=your-client-email
 FIREBASE_PRIVATE_KEY="your-private-key"
 
-Project Structure
-
-JS-Hubspot-Firebase/
-├── src/
-│   ├── config/
-│   │   ├── firebase.js        # Firebase configuration
-│   │   ├── hubspot.js         # HubSpot client configuration
-│   ├── services/
-│   │   ├── firebase.js        # Firebase interaction logic
-│   │   ├── hubspot.js         # HubSpot interaction logic
-│   ├── sync/
-│   │   ├── bulkSync.js        # Batch synchronization
-│   │   ├── singleSync.js      # Single user synchronization
-│   ├── utils/
-│   │   ├── logger.js          # Logging utility
-│   └── index.js               # Entry point for Firebase Functions
-├── .env                       # Environment variables
-├── .gitignore                 # Ignored files and folders
-├── firebase.json              # Firebase configuration
-├── .firebaserc                # Firebase project associations
-├── package.json               # Project dependencies
-└── README.md                  # Project documentation
-Usage
-Run Locally
-Start the Firebase emulators:
-
 
 firebase emulators:start
 Open your browser and test the endpoint:
