@@ -7,13 +7,8 @@ const SUBSCRIPTION_NAME = 'hubspot-sync-subscription';
 const BATCH_SIZE = 100;
 const DELAY_BETWEEN_BATCHES = 45000;
 
-const pubsub = new PubSub({
-  projectId: config.firebase.projectId,
-  credentials: {
-    client_email: config.firebase.clientEmail,
-    private_key: config.firebase.privateKey
-  }
-});
+// Modificar esta parte para usar el auth default de Firebase
+const pubsub = new PubSub();  // Eliminar la configuración manual de credenciales
 
 module.exports = {
   pubsub,

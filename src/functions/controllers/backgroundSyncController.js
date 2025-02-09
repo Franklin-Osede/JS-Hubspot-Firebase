@@ -1,21 +1,25 @@
-// src/functions/controllers/backgroundSyncController.js
 const pubSubService = require('../services/pubSubService');
 const admin = require('firebase-admin');
+
+console.log("✅ backgroundSyncController.js cargado correctamente");
 
 exports.startBackgroundSync = async (req, res) => {
   try {
     const { emails } = req.body;
-    console.log('Emails recibidos para sincronización en background:', emails);
+    console.log('📥 Emails recibidos para sincronización en background:', emails);
 
     if (!emails || emails.length === 0) {
       return res.json({
         success: false,
-        message: 'No se proporcionaron emails para sincronizar'
+        message: '⚠️ No se proporcionaron emails para sincronizar'
       });
     }
 
-    // Iniciar sincronización en background
+    console.log('🚀 Llamando a publishEmails() en Pub/Sub...');
+
     await pubSubService.publishEmails(emails);
+
+    console.log('✅ publishEmails() ejecutado correctamente.');
 
     res.json({
       success: true,
@@ -25,7 +29,7 @@ exports.startBackgroundSync = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error:', error);
+    console.error('❌ Error en startBackgroundSync:', error);
     res.status(500).json({
       success: false,
       message: 'Error al iniciar sincronización en background',

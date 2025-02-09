@@ -4,24 +4,29 @@
   "description": "Sync HubSpot with Firebase using Cloud Functions and Firestore",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon app.js", 
+    "start": "nodemon app.js",
     "emulators:start": "firebase emulators:start",
-    "test": "jest --coverage", 
-    "deploy:rules": "firebase deploy --only firestore:rules", 
-    "deploy:functions": "firebase deploy --only functions", 
-    "deploy:all": "firebase deploy" 
+    "test": "jest --coverage",
+    "deploy:rules": "firebase deploy --only firestore:rules",
+    "deploy:functions": "firebase deploy --only functions",
+    "deploy:all": "firebase deploy"
   },
-  "keywords": ["firebase", "hubspot", "sync"],
+  "keywords": [
+    "firebase",
+    "hubspot",
+    "sync"
+  ],
   "author": "Franklin Osede Prieto",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/pubsub": "^4.10.0",
     "@hubspot/api-client": "^12.0.1",
     "axios": "^1.7.9",
     "body-parser": "^1.20.3",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "firebase-admin": "^13.0.2",
-    "firebase-functions": "^6.3.0",
+    "firebase-functions": "^6.3.1",
     "winston": "^3.17.0"
   },
   "devDependencies": {
