@@ -4,6 +4,8 @@ const bodyParser = require('body-parser');
 const config = require('./config');
 const singleSyncRoutes = require('./routes/singleSyncRoutes');
 const bulkSyncRoutes = require('./routes/bulkSyncRoutes');
+const backgroundsyncRoutes = require('./routes/backgroundsyncRoutes');
+const pubSubService = require('./services/pubSubService');
 
 // Inicializar Firebase Admin
 const admin = require('firebase-admin');
@@ -47,6 +49,7 @@ app.get('/', (req, res) => {
 // Montar las rutas
 app.use('/single-sync', singleSyncRoutes);
 app.use('/bulk-sync', bulkSyncRoutes);
+app.use('/backgroundsync', backgroundsyncRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {
@@ -56,6 +59,9 @@ app.use((err, req, res, next) => {
     message: err.message || 'Internal Server Error'
   });
 });
+
+// Inicializar el subscriber de Pub/Sub
+pubSubService.initializeSubscriber();
 
 // Exportar la función
 exports.api = functions.https.onRequest(app);
