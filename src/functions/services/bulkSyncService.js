@@ -1,4 +1,3 @@
-// bulkSyncService.js
 const admin = require('firebase-admin');
 const { Client } = require('@hubspot/api-client');
 const config = require('../config');
@@ -13,11 +12,11 @@ const hubspotClient = new Client({
 });
 
 const syncAllUsers = async (db, emails) => {
-  try {
-    let processedCount = 0;
-    let updatedCount = 0;
-    let errorCount = 0;
+  let processedCount = 0;
+  let updatedCount = 0;
+  let errorCount = 0;
 
+  try {
     console.log('Access Token actual:', config.hubspot.apiKey);
     console.log('Iniciando sincronización bulk para emails:', emails);
 
@@ -86,9 +85,9 @@ const syncAllUsers = async (db, emails) => {
     return {
       success: false,
       error: error.message,
-      processedCount,
-      updatedCount,
-      errorCount
+      processedCount: processedCount || 0, // Asegurar que siempre tiene un valor
+      updatedCount: updatedCount || 0,
+      errorCount: errorCount || 0
     };
   }
 };

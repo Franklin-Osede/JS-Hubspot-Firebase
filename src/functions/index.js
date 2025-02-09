@@ -1,57 +1,52 @@
+require('dotenv').config({ path: '.env.production' });
+
 const functions = require('firebase-functions');
 const express = require('express');
 const bodyParser = require('body-parser');
+const admin = require('firebase-admin');
 const config = require('./config');
 const singleSyncRoutes = require('./routes/singleSyncRoutes');
 const bulkSyncRoutes = require('./routes/bulkSyncRoutes');
 const backgroundsyncRoutes = require('./routes/backgroundsyncRoutes');
 const pubSubService = require('./services/pubSubService');
 
-// Inicializar Firebase Admin
-const admin = require('firebase-admin');
-if (!admin.apps.length) {
-  if (process.env.NODE_ENV === 'production') {
-    // Configuración específica para producción
-    const serviceAccount = {
-      projectId: process.env.PROJECT_ID,
-      privateKey: process.env.PRIVATE_KEY.replace(/\\n/g, '\n'),
-      clientEmail: process.env.CLIENT_EMAIL
-    };
+// ✅ Confirmación en logs de que se está cargando producción
+console.log(`🚀 Entorno cargado: PRODUCTION`);
+console.log(`🔑 HubSpot Token: ${process.env.HUBSPOT_ACCESS_TOKEN ? "Presente" : "No presente"}`);
 
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      projectId: process.env.PROJECT_ID
-    });
-  } else if (process.env.FUNCTIONS_EMULATOR) {
-    // Configuración para el emulador
-    admin.initializeApp({
-      projectId: config.firebase.projectId,
-      credential: admin.credential.applicationDefault()
-    });
-  } else {
-    // Configuración por defecto
-    admin.initializeApp();
-  }
+// 🔥 Inicializar Firebase con configuración de producción
+if (!admin.apps.length) {
+  const serviceAccount = {
+    projectId: process.env.PROJECT_ID,
+    privateKey: process.env.PRIVATE_KEY.replace(/\\n/g, '\n'),
+    clientEmail: process.env.CLIENT_EMAIL
+  };
+
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    projectId: process.env.PROJECT_ID
+  });
 }
 
+// 🚀 Inicializar Express
 const app = express();
 app.use(bodyParser.json());
 
-// Ruta básica
+// ✅ Ruta básica para verificar que el API está en línea
 app.get('/', (req, res) => {
   res.json({
     status: 'OK',
     message: 'Firebase-HubSpot Sync Service',
-    environment: process.env.NODE_ENV || 'development'
+    environment: 'production'
   });
 });
 
-// Montar las rutas
+// 🔀 Montar las rutas
 app.use('/single-sync', singleSyncRoutes);
 app.use('/bulk-sync', bulkSyncRoutes);
 app.use('/backgroundsync', backgroundsyncRoutes);
 
-// Error handler
+// 🚨 Middleware de errores
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   res.status(err.status || 500).json({
@@ -60,8 +55,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Inicializar el subscriber de Pub/Sub
+// 🎯 Inicializar el Subscriber de Pub/Sub
 pubSubService.initializeSubscriber();
 
-// Exportar la función
+// 🔥 Exportar la función como API
 exports.api = functions.https.onRequest(app);
