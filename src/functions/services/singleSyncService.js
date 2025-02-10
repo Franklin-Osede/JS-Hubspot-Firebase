@@ -6,7 +6,7 @@ console.log('Configuración de HubSpot:', {
   apiKey: config.hubspot.apiKey ? 'Presente' : 'No presente'
 });
 
-// Inicializar el cliente de HubSpot
+// Initialize HubSpot´s client
 const hubspotClient = new Client({
   accessToken: config.hubspot.apiKey
 });

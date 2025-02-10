@@ -10,11 +10,11 @@ const bulkSyncRoutes = require('./routes/bulkSyncRoutes');
 const backgroundsyncRoutes = require('./routes/backgroundsyncRoutes');
 const pubSubService = require('./services/pubSubService');
 
-// ✅ Confirmación en logs de que se está cargando producción
+// ✅ Confirmation of logs from what it is loading in production
 console.log(`🚀 Entorno cargado: PRODUCTION`);
 console.log(`🔑 HubSpot Token: ${process.env.HUBSPOT_ACCESS_TOKEN ? "Presente" : "No presente"}`);
 
-// 🔥 Inicializar Firebase con configuración de producción
+// 🔥 Initialize Firebase with production config
 if (!admin.apps.length) {
   const serviceAccount = {
     projectId: process.env.PROJECT_ID,
@@ -28,11 +28,11 @@ if (!admin.apps.length) {
   });
 }
 
-// 🚀 Inicializar Express
+// 🚀 Initialize Express
 const app = express();
 app.use(bodyParser.json());
 
-// ✅ Ruta básica para verificar que el API está en línea
+// ✅ Basic route to verify that la API is online
 app.get('/', (req, res) => {
   res.json({
     status: 'OK',
@@ -41,12 +41,12 @@ app.get('/', (req, res) => {
   });
 });
 
-// 🔀 Montar las rutas
+// 🔀 Build the routes
 app.use('/single-sync', singleSyncRoutes);
 app.use('/bulk-sync', bulkSyncRoutes);
 app.use('/backgroundsync', backgroundsyncRoutes);
 
-// 🚨 Middleware de errores
+// 🚨 Middleware to manage errors
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   res.status(err.status || 500).json({
@@ -55,7 +55,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 🎯 Inicializar el Subscriber de Pub/Sub
+// 🎯 Initialize the Subscriber from Pub/Sub
 pubSubService.initializeSubscriber();
 
 // 🔥 Exportar la función como API

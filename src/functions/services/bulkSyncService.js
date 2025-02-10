@@ -20,7 +20,7 @@ const syncAllUsers = async (db, emails) => {
     console.log('Access Token actual:', config.hubspot.apiKey);
     console.log('Iniciando sincronización bulk para emails:', emails);
 
-    // Procesar cada email de la lista
+    // Process emails from the list
     for (const email of emails) {
       try {
         const response = await hubspotClient.crm.contacts.searchApi.doSearch({
@@ -85,7 +85,7 @@ const syncAllUsers = async (db, emails) => {
     return {
       success: false,
       error: error.message,
-      processedCount: processedCount || 0, // Asegurar que siempre tiene un valor
+      processedCount: processedCount || 0,
       updatedCount: updatedCount || 0,
       errorCount: errorCount || 0
     };

@@ -4,7 +4,7 @@ const admin = require('firebase-admin');
 
 class PubSubService {
   async publishEmails(emails, batchSize = 100) {
-    // Dividir emails en batches
+    // Divide emails in batches
     const batches = [];
     for (let i = 0; i < emails.length; i += batchSize) {
       batches.push(emails.slice(i, i + batchSize));
@@ -12,7 +12,7 @@ class PubSubService {
 
     console.log(`Dividiendo ${emails.length} emails en ${batches.length} batches`);
 
-    // Publicar cada batch
+    // Publis each batch
     for (const [index, batch] of batches.entries()) {
       const dataBuffer = Buffer.from(JSON.stringify({
         emails: batch,
@@ -23,7 +23,7 @@ class PubSubService {
       try {
         await pubsub.topic(TOPIC_NAME).publish(dataBuffer);
         console.log(`Batch ${index + 1}/${batches.length} publicado`);
-        // Esperar 45 segundos entre batches
+        // Wait 45 seconds between batches
         await new Promise(resolve => setTimeout(resolve, 45000));
       } catch (error) {
         console.error(`Error publicando batch ${index + 1}:`, error);
@@ -42,7 +42,7 @@ class PubSubService {
           emailsCount: emails.length
         });
 
-        // Usar tu función existente
+        // Use existing function
         const result = await syncAllUsers(admin.firestore(), emails);
 
         console.log(`Batch ${batchNumber}/${totalBatches} completado:`, result);

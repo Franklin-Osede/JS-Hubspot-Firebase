@@ -1,7 +1,7 @@
 const dotenv = require('dotenv');
 const path = require('path');
 
-// Cargar variables de entorno desde .env.production
+// Loaded environment variables from .env.production
 const envPath = path.resolve(__dirname, '../.env.production');
 console.log('🔍 Buscando archivo .env.production en:', envPath);
 

@@ -4,9 +4,9 @@ const { bulkSyncContacts } = require('../controllers/bulkSyncController');
 const router = express.Router();
 
 /**
- * Ruta para manejar la sincronización masiva de contactos con HubSpot.
+ * Route to manage massive syncronization of contacts with Hubspot
  * Endpoint: /api/bulk-sync
  */
-router.post('/', bulkSyncContacts);  // Cambiado de '/bulk-sync' a '/'
+router.post('/', bulkSyncContacts);
 
 module.exports = router;

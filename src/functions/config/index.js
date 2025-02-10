@@ -3,12 +3,12 @@ const env = process.env.NODE_ENV || 'development';
 let config;
 
 if (env === 'production') {
-  config = require('./production'); // Carga configuración de producción
+  config = require('./production'); // Load production config 
 } else if (env === 'development') {
-  config = require('./development'); // Carga configuración de desarrollo
+  config = require('./development'); // Load development config 
 } else {
   throw new Error(`Unknown environment: ${env}`);
 }
 
-// Exporta la configuración seleccionada
+// Export the selected config
 module.exports = config;
